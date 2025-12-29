@@ -34,7 +34,8 @@ const HotCollections = () => {
         "(max-width: 992px)": { slides: { perView: 2, spacing: 14 } },
         "(max-width: 576px)": { slides: { perView: 1, spacing: 12 } },
       },
-    }, []
+    },
+    []
   );
 
   useEffect(() => {
@@ -59,6 +60,8 @@ const HotCollections = () => {
     if (instanceRef.current) instanceRef.current.update();
   }, [collections, instanceRef]);
 
+  const isReady = !loading && !err && collections.length > 0;
+
   return (
     <section id="section-collections" className="no-bottom">
       <div className="container">
@@ -70,43 +73,45 @@ const HotCollections = () => {
             </div>
           </div>
 
+          {}
           {loading && (
-            <div className="col-12 text-center">
-              <p>Loading collections…</p>
+            <div className="col-12">
+              <div className="hot-collections-skeleton">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div className="hc-skel-card" key={i} />
+                ))}
+              </div>
             </div>
           )}
 
+          {}
           {!loading && err && (
             <div className="col-12 text-center">
               <p>{err}</p>
             </div>
           )}
 
-          {!loading && !err && collections.length > 0 && (
+          {}
+          {isReady && (
             <div className="col-12">
-              {}
               <div className="hot-collections-carousel">
-                {}
                 <button
                   type="button"
                   className="hc-arrow hc-arrow--left"
                   aria-label="Previous"
+                  disabled={!isReady}
                   onClick={() => instanceRef.current?.prev()}
                 >
                   ‹
                 </button>
 
-                {}
                 <div ref={sliderRef} className="keen-slider">
                   {collections.map((item, index) => {
-                    const nftId = item.nftId ?? item.id ?? index;
-
+                    const nftId = item.nftId ?? item.id ?? String(index);
                     const title = item.title ?? item.name ?? "Untitled Collection";
 
-                    
                     const rawCode =
                       item.code ?? item.blockchain ?? item.chain ?? item.erc ?? "";
-
                     const code = formatErcCode(rawCode);
 
                     const imageSrc =
@@ -127,7 +132,10 @@ const HotCollections = () => {
                         <div className="nft_coll">
                           <div className="nft_wrap">
                             {}
-                            <Link to={`/item-details/${nftId}`}>
+                            <Link
+                              to={`/item-details/${nftId}`}
+                              state={{ previewImage: imageSrc, previewTitle: title }}
+                            >
                               <img
                                 src={imageSrc}
                                 className="lazy img-fluid"
@@ -159,11 +167,11 @@ const HotCollections = () => {
                   })}
                 </div>
 
-                {}
                 <button
                   type="button"
                   className="hc-arrow hc-arrow--right"
                   aria-label="Next"
+                  disabled={!isReady}
                   onClick={() => instanceRef.current?.next()}
                 >
                   ›

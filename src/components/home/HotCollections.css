@@ -38,3 +38,26 @@
 .hc-arrow:hover {
   border-color: #bbb;
 }
+
+.hot-collections-skeleton{
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.hc-skel-card{
+  height: 260px;
+  border-radius: 12px;
+  background: rgba(0,0,0,0.06);
+}
+
+@media (max-width: 1200px){
+  .hot-collections-skeleton{ grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 992px){
+  .hot-collections-skeleton{ grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 576px){
+  .hot-collections-skeleton{ grid-template-columns: repeat(1, 1fr); }
+}
