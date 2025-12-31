@@ -9,7 +9,6 @@ import nftImage from "../../images/nftImage.jpg";
 const API_URL =
   "https://us-central1-nft-cloud-functions.cloudfunctions.net/newItems";
 
-
 function pickImage(item) {
   return (
     item?.nftImage ||
@@ -48,7 +47,6 @@ function pickEndTime(item) {
     return new Date(raw < 10_000_000_000 ? raw * 1000 : raw);
   }
 
-
   const d = new Date(raw);
   return isNaN(d.getTime()) ? null : d;
 }
@@ -68,7 +66,7 @@ const NewItems = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
-  
+
   const [tick, setTick] = useState(0);
 
   const [sliderRef, instanceRef] = useKeenSlider(
@@ -104,12 +102,10 @@ const NewItems = () => {
     fetchNewItems();
   }, []);
 
-  
   useEffect(() => {
     if (instanceRef.current) instanceRef.current.update();
   }, [items, instanceRef]);
 
-  
   useEffect(() => {
     const id = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(id);
@@ -178,7 +174,6 @@ const NewItems = () => {
 
                     const likes = item?.likes ?? item?.likeCount ?? 0;
 
-                    // countdown
                     const endTime = pickEndTime(item);
                     const now = Date.now();
                     const remaining = endTime ? endTime.getTime() - now : null;
@@ -240,7 +235,8 @@ const NewItems = () => {
                             </Link>
 
                             <div className="nft__item_price">
-                              {price} {String(price).includes("ETH") ? "" : "ETH"}
+                              {price}{" "}
+                              {String(price).includes("ETH") ? "" : "ETH"}
                             </div>
 
                             <div className="nft__item_like">
