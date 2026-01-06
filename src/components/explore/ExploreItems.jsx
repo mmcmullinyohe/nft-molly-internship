@@ -1,11 +1,14 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import AuthorImage from "../../images/author_thumbnail.jpg";
 import nftImage from "../../images/nftImage.jpg";
 
-const ExploreItems = ({ items = [], loading = false }) => {
-  const [filter, setFilter] = useState("");
-
+const ExploreItems = ({
+  items = [],
+  loading = false,
+  filter = "",
+  onFilterChange = () => {},
+}) => {
   const INITIAL_COUNT = 8;
   const LOAD_MORE_STEP = 4;
   const [visibleCount, setVisibleCount] = useState(INITIAL_COUNT);
@@ -16,11 +19,6 @@ const ExploreItems = ({ items = [], loading = false }) => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
   }, []);
-
-  const toNumber = (v) => {
-    const n = Number(v);
-    return Number.isFinite(n) ? n : null;
-  };
 
   const formatCountdown = (ms) => {
     if (!Number.isFinite(ms) || ms <= 0) return "Ended";
@@ -33,20 +31,6 @@ const ExploreItems = ({ items = [], loading = false }) => {
     return `${hours}h ${minutes}m ${seconds}s`;
   };
 
-  const sortedItems = useMemo(() => {
-    const copy = [...items];
-
-    if (filter === "price_low_to_high") {
-      copy.sort((a, b) => (toNumber(a.price) ?? 0) - (toNumber(b.price) ?? 0));
-    } else if (filter === "price_high_to_low") {
-      copy.sort((a, b) => (toNumber(b.price) ?? 0) - (toNumber(a.price) ?? 0));
-    } else if (filter === "likes_high_to_low") {
-      copy.sort((a, b) => (toNumber(b.likes) ?? 0) - (toNumber(a.likes) ?? 0));
-    }
-
-    return copy;
-  }, [items, filter]);
-
   useEffect(() => {
     setVisibleCount(INITIAL_COUNT);
   }, [items, filter]);
@@ -57,7 +41,7 @@ const ExploreItems = ({ items = [], loading = false }) => {
         <select
           id="filter-items"
           value={filter}
-          onChange={(e) => setFilter(e.target.value)}
+          onChange={(e) => onFilterChange(e.target.value)}
         >
           <option value="">Default</option>
           <option value="price_low_to_high">Price, Low to High</option>
@@ -138,7 +122,7 @@ const ExploreItems = ({ items = [], loading = false }) => {
         ))}
 
       {!loading &&
-        sortedItems.slice(0, visibleCount).map((item, index) => {
+        items.slice(0, visibleCount).map((item, index) => {
           const nftId = item?.nftId || item?.id || item?._id || index;
 
           const authorId =
@@ -171,6 +155,7 @@ const ExploreItems = ({ items = [], loading = false }) => {
             item?.countdownEnd;
 
           const endTimeMs = endTimeRaw ? new Date(endTimeRaw).getTime() : null;
+
           const countdownText = endTimeMs
             ? formatCountdown(endTimeMs - now)
             : "—";
@@ -202,8 +187,9 @@ const ExploreItems = ({ items = [], loading = false }) => {
                 </div>
 
                 {countdownText !== "—" && (
-  <div className="de_countdown">{countdownText}</div>
-)}
+                  <div className="de_countdown">{countdownText}</div>
+                )}
+
                 <div className="nft__item_wrap">
                   <div className="nft__item_extra">
                     <div className="nft__item_buttons">
@@ -258,14 +244,13 @@ const ExploreItems = ({ items = [], loading = false }) => {
             type="button"
             id="loadmore"
             className="btn-main lead"
-            disabled={visibleCount >= sortedItems.length}
+            disabled={visibleCount >= items.length}
             onClick={() => setVisibleCount((prev) => prev + LOAD_MORE_STEP)}
             style={{
-              cursor:
-                visibleCount >= sortedItems.length ? "not-allowed" : "pointer",
+              cursor: visibleCount >= items.length ? "not-allowed" : "pointer",
             }}
           >
-            {visibleCount >= sortedItems.length ? "No more items" : "Load more"}
+            {visibleCount >= items.length ? "No more items" : "Load more"}
           </button>
         </div>
       )}
