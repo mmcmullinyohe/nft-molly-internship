@@ -8,12 +8,29 @@ const ExploreItems = ({ items = [], loading = false }) => {
 
   const INITIAL_COUNT = 8;
   const LOAD_MORE_STEP = 4;
-
   const [visibleCount, setVisibleCount] = useState(INITIAL_COUNT);
+
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const toNumber = (v) => {
     const n = Number(v);
     return Number.isFinite(n) ? n : null;
+  };
+
+  const formatCountdown = (ms) => {
+    if (!Number.isFinite(ms) || ms <= 0) return "Ended";
+
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    return `${hours}h ${minutes}m ${seconds}s`;
   };
 
   const sortedItems = useMemo(() => {
@@ -49,9 +66,8 @@ const ExploreItems = ({ items = [], loading = false }) => {
         </select>
       </div>
 
-      {}
       {loading &&
-        new Array(8).fill(0).map((_, index) => (
+        new Array(INITIAL_COUNT).fill(0).map((_, index) => (
           <div
             key={`skeleton-${index}`}
             className="d-item col-lg-3 col-md-6 col-sm-6 col-xs-12"
@@ -121,7 +137,6 @@ const ExploreItems = ({ items = [], loading = false }) => {
           </div>
         ))}
 
-      {}
       {!loading &&
         sortedItems.slice(0, visibleCount).map((item, index) => {
           const nftId = item?.nftId || item?.id || item?._id || index;
@@ -147,7 +162,16 @@ const ExploreItems = ({ items = [], loading = false }) => {
 
           const likes = item?.likes != null ? item.likes : 0;
 
-          const countdownText = item?.countdown || "—";
+          const endTimeRaw =
+            item?.expiryDate ||
+            item?.expiresAt ||
+            item?.endDate ||
+            item?.auctionEndsAt ||
+            item?.timeEnd ||
+            item?.countdownEnd;
+
+          const endTimeMs = endTimeRaw ? new Date(endTimeRaw).getTime() : null;
+          const countdownText = endTimeMs ? formatCountdown(endTimeMs - now) : "—";
 
           return (
             <div
@@ -225,7 +249,6 @@ const ExploreItems = ({ items = [], loading = false }) => {
           );
         })}
 
-      {}
       {!loading && (
         <div className="col-md-12 text-center">
           <button
