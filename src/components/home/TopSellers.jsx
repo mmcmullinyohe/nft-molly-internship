@@ -30,7 +30,6 @@ const TopSellers = () => {
 
         setSellers(Array.isArray(list) ? list : []);
       } catch (err) {
-
         if (err?.name === "CanceledError" || err?.name === "AbortError") return;
 
         setErrorMsg(
@@ -68,10 +67,11 @@ const TopSellers = () => {
 
     const verified = Boolean(s?.verified ?? s?.isVerified);
 
-    const to = "/author";
+    const authorId = s?.authorId || s?.id || s?._id;
+    const to = authorId ? `/author/${authorId}` : "/author";
 
     return {
-      key: s?.id || s?._id || s?.authorId || `${name}-${index}`,
+      key: authorId || `${name}-${index}`,
       to,
       name,
       avatar,
