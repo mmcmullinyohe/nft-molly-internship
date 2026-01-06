@@ -171,7 +171,9 @@ const ExploreItems = ({ items = [], loading = false }) => {
             item?.countdownEnd;
 
           const endTimeMs = endTimeRaw ? new Date(endTimeRaw).getTime() : null;
-          const countdownText = endTimeMs ? formatCountdown(endTimeMs - now) : "—";
+          const countdownText = endTimeMs
+            ? formatCountdown(endTimeMs - now)
+            : "—";
 
           return (
             <div
@@ -199,8 +201,9 @@ const ExploreItems = ({ items = [], loading = false }) => {
                   </Link>
                 </div>
 
-                <div className="de_countdown">{countdownText}</div>
-
+                {countdownText !== "—" && (
+  <div className="de_countdown">{countdownText}</div>
+)}
                 <div className="nft__item_wrap">
                   <div className="nft__item_extra">
                     <div className="nft__item_buttons">
@@ -258,7 +261,8 @@ const ExploreItems = ({ items = [], loading = false }) => {
             disabled={visibleCount >= sortedItems.length}
             onClick={() => setVisibleCount((prev) => prev + LOAD_MORE_STEP)}
             style={{
-              cursor: visibleCount >= sortedItems.length ? "not-allowed" : "pointer",
+              cursor:
+                visibleCount >= sortedItems.length ? "not-allowed" : "pointer",
             }}
           >
             {visibleCount >= sortedItems.length ? "No more items" : "Load more"}
