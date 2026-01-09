@@ -157,9 +157,7 @@ const ItemDetails = () => {
                         {likes}
                       </div>
                     </div>
-
                     <p>{description}</p>
-
                     <div className="d-flex flex-row">
                       <div className="mr40">
                         <h6>Owner</h6>
