@@ -73,7 +73,6 @@ const HotCollections = () => {
             </div>
           </div>
 
-          {}
           {loading && (
             <div className="col-12">
               <div className="hot-collections-skeleton">
@@ -84,14 +83,12 @@ const HotCollections = () => {
             </div>
           )}
 
-          {}
           {!loading && err && (
             <div className="col-12 text-center">
               <p>{err}</p>
             </div>
           )}
 
-          {}
           {isReady && (
             <div className="col-12">
               <div className="hot-collections-carousel">
@@ -127,11 +124,21 @@ const HotCollections = () => {
                       item.profileImage ??
                       AuthorImage;
 
+                    const authorId =
+                      item.authorId ??
+                      item.creatorId ??
+                      item.author?.authorId ??
+                      item.creator?.authorId ??
+                      item.author?.id ??
+                      item.creator?.id ??
+                      item.author?.address ??
+                      item.creator?.address ??
+                      "";
+
                     return (
                       <div className="keen-slider__slide" key={nftId}>
                         <div className="nft_coll">
                           <div className="nft_wrap">
-                            {}
                             <Link
                               to={`/item-details/${nftId}`}
                               state={{ previewImage: imageSrc, previewTitle: title }}
@@ -145,7 +152,7 @@ const HotCollections = () => {
                           </div>
 
                           <div className="nft_coll_pp">
-                            <Link to="/author">
+                            <Link to={authorId ? `/author/${authorId}` : "/author"}>
                               <img
                                 className="lazy pp-coll"
                                 src={authorSrc}

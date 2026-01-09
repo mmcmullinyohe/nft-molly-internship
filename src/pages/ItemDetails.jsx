@@ -6,10 +6,8 @@ import AuthorImage from "../images/author_thumbnail.jpg";
 import nftImage from "../images/nftImage.jpg";
 import "./ItemDetails.css";
 
-
 const ITEM_DETAILS_URL =
   "https://us-central1-nft-cloud-functions.cloudfunctions.net/itemDetails";
-
 
 function pickImage(item) {
   return (
@@ -34,30 +32,13 @@ const ItemDetailsSkeleton = () => {
       <div className="col-md-6">
         <div className="item_info">
           <div className="ids-skel-title" />
-
           <div className="item_info_counts">
             <div className="ids-skel-pill" />
             <div className="ids-skel-pill" />
           </div>
-
           <div className="ids-skel-line" />
           <div className="ids-skel-line" />
           <div className="ids-skel-line short" />
-
-          <div className="d-flex flex-row" style={{ marginTop: 20 }}>
-            <div className="mr40">
-              <div className="ids-skel-subtitle" />
-              <div className="ids-skel-author" />
-            </div>
-            <div>
-              <div className="ids-skel-subtitle" />
-              <div className="ids-skel-author" />
-            </div>
-          </div>
-
-          <div className="spacer-40"></div>
-          <div className="ids-skel-subtitle" />
-          <div className="ids-skel-price" />
         </div>
       </div>
     </div>
@@ -85,12 +66,12 @@ const ItemDetails = () => {
         });
 
         setItem(data ?? null);
-      } catch (e1) {
+      } catch {
         try {
           const { data } = await axios.get(`${ITEM_DETAILS_URL}/${nftId}`);
           setItem(data ?? null);
-        } catch (e2) {
-          console.error(e2);
+        } catch (e) {
+          console.error(e);
           setErr("Could not load item details.");
           setItem(null);
         }
@@ -107,27 +88,42 @@ const ItemDetails = () => {
   const views = item?.views ?? 0;
   const likes = item?.likes ?? 0;
   const description = item?.description || "";
+
   const ownerName = item?.owner?.name || item?.ownerName || "—";
   const ownerImage =
-    item?.owner?.image || item?.ownerImage || item?.owner?.profileImage || AuthorImage;
+    item?.owner?.image ||
+    item?.ownerImage ||
+    item?.owner?.profileImage ||
+    AuthorImage;
+
+  const ownerId =
+    item?.owner?.authorId ||
+    item?.owner?.id ||
+    item?.ownerId ||
+    "";
 
   const creatorName = item?.creator?.name || item?.creatorName || "—";
   const creatorImage =
-    item?.creator?.image || item?.creatorImage || item?.creator?.profileImage || AuthorImage;
+    item?.creator?.image ||
+    item?.creatorImage ||
+    item?.creator?.profileImage ||
+    AuthorImage;
+
+  const creatorId =
+    item?.creator?.authorId ||
+    item?.creator?.id ||
+    item?.creatorId ||
+    "";
 
   const price = item?.price ?? "—";
 
   return (
     <div id="wrapper">
       <div className="no-bottom no-top" id="content">
-        <div id="top"></div>
-
         <section aria-label="section" className="mt90 sm-mt-0">
           <div className="container">
-            {}
             {loading && <ItemDetailsSkeleton />}
 
-            {}
             {!loading && err && (
               <div className="row">
                 <div className="col-12 text-center">
@@ -137,7 +133,6 @@ const ItemDetails = () => {
               </div>
             )}
 
-            {}
             {!loading && !err && item && (
               <div className="row">
                 <div className="col-md-6 text-center">
@@ -170,17 +165,18 @@ const ItemDetails = () => {
                         <h6>Owner</h6>
                         <div className="item_author">
                           <div className="author_list_pp">
-                            <Link to="/author">
-                              <img className="lazy" src={ownerImage} alt={ownerName} />
+                            <Link to={ownerId ? `/author/${ownerId}` : "/author"}>
+                              <img src={ownerImage} alt={ownerName} />
                               <i className="fa fa-check"></i>
                             </Link>
                           </div>
                           <div className="author_list_info">
-                            <Link to="/author">{ownerName}</Link>
+                            <Link to={ownerId ? `/author/${ownerId}` : "/author"}>
+                              {ownerName}
+                            </Link>
                           </div>
                         </div>
                       </div>
-                      <div></div>
                     </div>
 
                     <div className="de_tab tab_simple">
@@ -188,13 +184,19 @@ const ItemDetails = () => {
                         <h6>Creator</h6>
                         <div className="item_author">
                           <div className="author_list_pp">
-                            <Link to="/author">
-                              <img className="lazy" src={creatorImage} alt={creatorName} />
+                            <Link
+                              to={creatorId ? `/author/${creatorId}` : "/author"}
+                            >
+                              <img src={creatorImage} alt={creatorName} />
                               <i className="fa fa-check"></i>
                             </Link>
                           </div>
                           <div className="author_list_info">
-                            <Link to="/author">{creatorName}</Link>
+                            <Link
+                              to={creatorId ? `/author/${creatorId}` : "/author"}
+                            >
+                              {creatorName}
+                            </Link>
                           </div>
                         </div>
                       </div>
@@ -212,7 +214,6 @@ const ItemDetails = () => {
               </div>
             )}
 
-            {}
             {!loading && !err && !item && (
               <div className="row">
                 <div className="col-12 text-center">
