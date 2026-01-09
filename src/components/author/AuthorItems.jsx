@@ -9,6 +9,7 @@ const BASE_URL =
 
 const AuthorItems = ({ authorId }) => {
   const [items, setItems] = useState([]);
+  const [authorThumb, setAuthorThumb] = useState(AuthorImage);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -27,6 +28,7 @@ const AuthorItems = ({ authorId }) => {
         setLoading(true);
         setErrorMsg("");
         setItems([]);
+        setAuthorThumb(AuthorImage);
 
         const res = await axios.get(apiUrl, { signal: controller.signal });
 
@@ -46,6 +48,14 @@ const AuthorItems = ({ authorId }) => {
           authorData?.collections ||
           [];
 
+        const thumb =
+          authorData?.authorImage ||
+          authorData?.avatar ||
+          authorData?.profileImage ||
+          authorData?.image ||
+          AuthorImage;
+
+        setAuthorThumb(thumb);
         setItems(Array.isArray(extracted) ? extracted : []);
       } catch (err) {
         if (err?.name === "CanceledError" || err?.name === "AbortError") return;
@@ -81,9 +91,6 @@ const AuthorItems = ({ authorId }) => {
 
   const getPreview = (it) =>
     it?.nftImage || it?.image || it?.previewImage || it?.coverImage || nftImage;
-
-  const getAvatar = (it) =>
-    it?.authorImage || it?.creatorImage || it?.avatar || AuthorImage;
 
   if (loading) {
     return (
@@ -136,7 +143,6 @@ const AuthorItems = ({ authorId }) => {
             const price = getPrice(it);
             const likes = getLikes(it);
             const preview = getPreview(it);
-            const avatar = getAvatar(it);
 
             return (
               <div className="col-lg-3 col-md-6 col-sm-6 col-xs-12" key={id}>
@@ -145,7 +151,7 @@ const AuthorItems = ({ authorId }) => {
                     <Link to={`/author/${authorId}`}>
                       <img
                         className="lazy"
-                        src={avatar}
+                        src={authorThumb}
                         alt=""
                         onError={(e) => {
                           e.currentTarget.src = AuthorImage;
@@ -156,7 +162,6 @@ const AuthorItems = ({ authorId }) => {
                   </div>
 
                   <div className="nft__item_wrap">
-                    {}
                     <Link to={`/item-details/${getItemId(it)}`}>
                       <img
                         src={preview}

@@ -4,6 +4,7 @@ import { useParams, Link } from "react-router-dom";
 import AuthorBanner from "../images/author_banner.jpg";
 import AuthorImage from "../images/author_thumbnail.jpg";
 import AuthorItems from "../components/author/AuthorItems";
+import "./Author.css";
 
 const BASE_URL =
   "https://us-central1-nft-cloud-functions.cloudfunctions.net/authors";
@@ -15,7 +16,6 @@ const Author = () => {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
-  // UI-only follow state
   const [isFollowing, setIsFollowing] = useState(false);
   const [followers, setFollowers] = useState(0);
 
@@ -38,33 +38,27 @@ const Author = () => {
         const res = await axios.get(apiUrl, { signal: controller.signal });
 
         const payload = res?.data;
+        const data = Array.isArray(payload)
+          ? payload[0]
+          : Array.isArray(payload?.data)
+          ? payload.data[0]
+          : payload?.data ?? payload;
 
-        // Handle common shapes:
-        // 1) { ...author }
-        // 2) { data: { ...author } }
-        // 3) [ { ...author } ]
-        // 4) { data: [ { ...author } ] }
-        const normalized =
-          Array.isArray(payload) ? payload[0] :
-          Array.isArray(payload?.data) ? payload.data[0] :
-          payload?.data ?? payload;
-
-        setAuthor(normalized || null);
+        setAuthor(data || null);
 
         const initialFollowers =
           Number(
-            normalized?.followers ??
-              normalized?.followerCount ??
-              normalized?.followersCount
+            data?.followers ?? data?.followerCount ?? data?.followersCount
           ) || 0;
 
         setFollowers(initialFollowers);
-        setIsFollowing(Boolean(normalized?.isFollowing ?? normalized?.followed ?? false));
+        setIsFollowing(Boolean(data?.isFollowing ?? data?.followed ?? false));
       } catch (err) {
         if (err?.name === "CanceledError" || err?.name === "AbortError") return;
-
         setErrorMsg(
-          err?.response?.data?.message || err?.message || "Failed to load author."
+          err?.response?.data?.message ||
+            err?.message ||
+            "Failed to load author."
         );
       } finally {
         setLoading(false);
@@ -76,23 +70,25 @@ const Author = () => {
   }, [apiUrl, authorId]);
 
   const handleToggleFollow = () => {
-    setIsFollowing((prev) => {
-      const next = !prev;
-      setFollowers((f) => Math.max(0, next ? f + 1 : f - 1));
-      return next;
-    });
+    setIsFollowing((prev) => !prev);
+    setFollowers((f) => (isFollowing ? Math.max(0, f - 1) : f + 1));
   };
 
   const display = useMemo(() => {
-    const name = author?.authorName || author?.name || author?.username || "Author";
-    const username = author?.username || author?.handle || author?.authorUsername || "";
+    const name =
+      author?.authorName || author?.name || author?.username || "Author";
+    const username =
+      author?.tag ||
+      author?.username ||
+      author?.handle ||
+      author?.authorUsername ||
+      "";
     const wallet =
       author?.wallet ||
       author?.walletAddress ||
       author?.address ||
       author?.wallet_id ||
       "";
-
     const avatar =
       author?.authorImage ||
       author?.avatar ||
@@ -100,7 +96,7 @@ const Author = () => {
       author?.image ||
       AuthorImage;
 
-    const verified = Boolean(author?.verified ?? author?.isVerified);
+    const verified = Boolean(author?.tag);
 
     return { name, username, wallet, avatar, verified };
   }, [author]);
@@ -112,65 +108,78 @@ const Author = () => {
   return (
     <div id="wrapper">
       <div className="no-bottom no-top" id="content">
-        <div id="top"></div>
-
         <section
           id="profile_banner"
-          aria-label="section"
           className="text-light"
           style={{ background: `url(${AuthorBanner}) top` }}
         />
-
-        <section aria-label="section">
+        <section>
           <div className="container">
-            {loading && <div style={{ padding: 20 }}>Loading author...</div>}
-
-            {!loading && errorMsg && (
-              <div style={{ padding: "20px 0", color: "crimson" }}>{errorMsg}</div>
-            )}
-
             {!loading && !errorMsg && author && (
               <div className="row">
                 <div className="col-md-12">
                   <div className="d_profile de-flex">
                     <div className="de-flex-col">
                       <div className="profile_avatar">
-                        <img
-                          src={display.avatar}
-                          alt={display.name}
-                          onError={(e) => {
-                            e.currentTarget.src = AuthorImage;
-                          }}
-                        />
-                        {display.verified && <i className="fa fa-check"></i>}
+                        <div className="avatar_wrap">
+                          <img
+                            src={display.avatar}
+                            alt={display.name}
+                            onError={(e) => {
+                              e.currentTarget.src = AuthorImage;
+                            }}
+                          />
+                          {display.verified && (
+                            <span className="verified_badge">✓</span>
+                          )}
+                        </div>
 
                         <div className="profile_name">
-                          <h4>
-                            {display.name}
-                            {display.username && (
-                              <span className="profile_username">@{display.username}</span>
-                            )}
-                            {display.wallet && (
-                              <span id="wallet" className="profile_wallet">
+                          <h4 className="author_name">{display.name}</h4>
+                          {display.username && (
+                            <div className="author_username">
+                              @{display.username}
+                            </div>
+                          )}
+                          {display.wallet && (
+                            <div className="author_wallet_row">
+                              <span className="author_wallet">
                                 {display.wallet}
                               </span>
-                            )}
-                          </h4>
+                              <button
+                                type="button"
+                                className="btn-wallet"
+                                style={{
+                                  pointerEvents: "auto",
+                                  position: "relative",
+                                  zIndex: 9999,
+                                }}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  navigator.clipboard.writeText(display.wallet);
+                                }}
+                              >
+                                Copy
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
 
                     <div className="profile_follow de-flex">
                       <div className="de-flex-col">
-                        <div className="profile_follower">{followers} followers</div>
-
-                        <button type="button" className="btn-main" onClick={handleToggleFollow}>
+                        <div className="profile_follower">
+                          {followers} followers
+                        </div>
+                        <button
+                          type="button"
+                          className="btn-main"
+                          onClick={handleToggleFollow}
+                        >
                           {isFollowing ? "Unfollow" : "Follow"}
                         </button>
-
-                        <div style={{ marginTop: 10, fontSize: 12, opacity: 0.7 }}>
-                          Author ID: {authorId}
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -180,15 +189,6 @@ const Author = () => {
                   <div className="de_tab tab_simple">
                     <AuthorItems authorId={authorId} />
                   </div>
-                </div>
-              </div>
-            )}
-
-            {!loading && !errorMsg && !author && (
-              <div style={{ padding: "20px 0" }}>
-                Author not found for ID: <b>{authorId}</b>
-                <div style={{ marginTop: 10 }}>
-                  <Link to="/explore">Back to Explore</Link>
                 </div>
               </div>
             )}

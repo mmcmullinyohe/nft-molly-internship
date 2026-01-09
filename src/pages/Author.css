@@ -1,0 +1,77 @@
+.d_profile.de-flex {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.profile_avatar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.avatar_wrap {
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+
+.avatar_wrap img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.verified_badge {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #7a5cff;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  border: 3px solid #fff;
+}
+
+.profile_name {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.author_name {
+  margin: 0;
+}
+
+.author_username {
+  font-size: 14px;
+  color: #7a5cff;
+  font-weight: 500;
+}
+
+.author_wallet_row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.author_wallet {
+  max-width: 360px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.8;
+  font-size: 14px;
+}
+
+.btn-wallet {
+  position: relative;
+  z-index: 9999;
+  pointer-events: auto;
+}
