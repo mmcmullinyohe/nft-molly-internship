@@ -3,16 +3,13 @@ import axios from "axios";
 import SubHeader from "../images/subheader.jpg";
 import ExploreItems from "../components/explore/ExploreItems";
 
-const BASE_URL =
+const API_URL =
   "https://us-central1-nft-cloud-functions.cloudfunctions.net/explore";
 
 const Explore = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
-
-  
-  const [filter, setFilter] = useState("");
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -24,9 +21,7 @@ const Explore = () => {
         setLoading(true);
         setErrorMsg("");
 
-        const url = filter ? `${BASE_URL}?filter=${filter}` : BASE_URL;
-
-        const res = await axios.get(url, { signal: controller.signal });
+        const res = await axios.get(API_URL, { signal: controller.signal });
 
         const payload = res?.data;
         const list = Array.isArray(payload) ? payload : payload?.data || [];
@@ -48,7 +43,7 @@ const Explore = () => {
     fetchExplore();
 
     return () => controller.abort();
-  }, [filter]);
+  }, []);
 
   return (
     <div id="wrapper">
@@ -88,13 +83,7 @@ const Explore = () => {
         <section aria-label="section">
           <div className="container">
             <div className="row">
-              {}
-              <ExploreItems
-                items={items}
-                loading={loading}
-                filter={filter}
-                onFilterChange={setFilter}
-              />
+              <ExploreItems items={items} loading={loading} />
             </div>
           </div>
         </section>

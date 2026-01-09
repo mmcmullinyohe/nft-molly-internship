@@ -66,7 +66,6 @@ const NewItems = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
-
   const [tick, setTick] = useState(0);
 
   const [sliderRef, instanceRef] = useKeenSlider(
@@ -124,28 +123,24 @@ const NewItems = () => {
             </div>
           </div>
 
-          {}
           {loading && (
             <div className="col-12 text-center">
               <p>Loading new items…</p>
             </div>
           )}
 
-          {}
           {!loading && err && (
             <div className="col-12 text-center">
               <p>{err}</p>
             </div>
           )}
 
-          {}
           {isReady && (
             <div className="col-12">
               <div className="new-items-carousel">
                 <button
                   type="button"
                   className="hc-arrow hc-arrow--left"
-                  aria-label="Previous"
                   onClick={() => instanceRef.current?.prev()}
                 >
                   ‹
@@ -154,9 +149,20 @@ const NewItems = () => {
                 <div ref={sliderRef} className="keen-slider">
                   {items.map((item, index) => {
                     const nftId = item?.nftId ?? item?.id ?? String(index);
+
+                    const authorId =
+                      item?.authorId ??
+                      item?.creatorId ??
+                      item?.author?.authorId ??
+                      item?.creator?.authorId ??
+                      item?.author?.id ??
+                      item?.creator?.id ??
+                      item?.author?.address ??
+                      item?.creator?.address ??
+                      "";
+
                     const title = item?.title ?? item?.name ?? "New Item";
                     const imageSrc = pickImage(item);
-
                     const authorSrc = pickAuthorImage(item);
                     const creatorName =
                       item?.creatorName ||
@@ -175,8 +181,9 @@ const NewItems = () => {
                     const likes = item?.likes ?? item?.likeCount ?? 0;
 
                     const endTime = pickEndTime(item);
-                    const now = Date.now();
-                    const remaining = endTime ? endTime.getTime() - now : null;
+                    const remaining = endTime
+                      ? endTime.getTime() - Date.now()
+                      : null;
                     const countdownText =
                       remaining === null ? "" : formatCountdown(remaining);
 
@@ -185,41 +192,21 @@ const NewItems = () => {
                         <div className="nft__item">
                           <div className="author_list_pp">
                             <Link
-                              to="/author"
-                              data-bs-toggle="tooltip"
-                              data-bs-placement="top"
+                              to={authorId ? `/author/${authorId}` : "/author"}
                               title={`Creator: ${creatorName}`}
                             >
-                              <img className="lazy" src={authorSrc} alt="" />
+                              <img src={authorSrc} alt={creatorName} />
                               <i className="fa fa-check"></i>
                             </Link>
                           </div>
 
-                          {}
                           {countdownText && (
-                            <div className="de_countdown">{countdownText}</div>
+                            <div className="de_countdown">
+                              {countdownText}
+                            </div>
                           )}
 
                           <div className="nft__item_wrap">
-                            <div className="nft__item_extra">
-                              <div className="nft__item_buttons">
-                                <button>Buy Now</button>
-                                <div className="nft__item_share">
-                                  <h4>Share</h4>
-                                  <a href="#" target="_blank" rel="noreferrer">
-                                    <i className="fa fa-facebook fa-lg"></i>
-                                  </a>
-                                  <a href="#" target="_blank" rel="noreferrer">
-                                    <i className="fa fa-twitter fa-lg"></i>
-                                  </a>
-                                  <a href="#">
-                                    <i className="fa fa-envelope fa-lg"></i>
-                                  </a>
-                                </div>
-                              </div>
-                            </div>
-
-                            {}
                             <Link to={`/item-details/${nftId}`}>
                               <img
                                 src={imageSrc}
@@ -253,7 +240,6 @@ const NewItems = () => {
                 <button
                   type="button"
                   className="hc-arrow hc-arrow--right"
-                  aria-label="Next"
                   onClick={() => instanceRef.current?.next()}
                 >
                   ›
@@ -262,7 +248,6 @@ const NewItems = () => {
             </div>
           )}
 
-          {}
           {!loading && !err && items.length === 0 && (
             <div className="col-12 text-center">
               <p>No new items found.</p>

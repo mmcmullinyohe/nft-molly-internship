@@ -1,152 +1,195 @@
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
+import axios from "axios";
+import { useParams, Link } from "react-router-dom";
 import AuthorBanner from "../images/author_banner.jpg";
+import AuthorImage from "../images/author_thumbnail.jpg";
+import AuthorItems from "../components/author/AuthorItems";
+import "./Author.css";
+
+const BASE_URL =
+  "https://us-central1-nft-cloud-functions.cloudfunctions.net/authors";
 
 const Author = () => {
   const { authorId } = useParams();
+
+  const [author, setAuthor] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followers, setFollowers] = useState(0);
+
+  const apiUrl = useMemo(() => {
+    const id = encodeURIComponent(authorId || "");
+    return `${BASE_URL}?author=${id}`;
+  }, [authorId]);
 
   useEffect(() => {
-    setLoading(true);
+    if (!authorId) return;
 
-    const t = setTimeout(() => setLoading(false), 800);
+    const controller = new AbortController();
 
-    return () => clearTimeout(t);
-  }, [authorId]);
+    const fetchAuthor = async () => {
+      try {
+        setLoading(true);
+        setErrorMsg("");
+        setAuthor(null);
+
+        const res = await axios.get(apiUrl, { signal: controller.signal });
+
+        const payload = res?.data;
+        const data = Array.isArray(payload)
+          ? payload[0]
+          : Array.isArray(payload?.data)
+          ? payload.data[0]
+          : payload?.data ?? payload;
+
+        setAuthor(data || null);
+
+        const initialFollowers =
+          Number(
+            data?.followers ?? data?.followerCount ?? data?.followersCount
+          ) || 0;
+
+        setFollowers(initialFollowers);
+        setIsFollowing(Boolean(data?.isFollowing ?? data?.followed ?? false));
+      } catch (err) {
+        if (err?.name === "CanceledError" || err?.name === "AbortError") return;
+        setErrorMsg(
+          err?.response?.data?.message ||
+            err?.message ||
+            "Failed to load author."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAuthor();
+    return () => controller.abort();
+  }, [apiUrl, authorId]);
+
+  const handleToggleFollow = () => {
+    setIsFollowing((prev) => !prev);
+    setFollowers((f) => (isFollowing ? Math.max(0, f - 1) : f + 1));
+  };
+
+  const display = useMemo(() => {
+    const name =
+      author?.authorName || author?.name || author?.username || "Author";
+    const username =
+      author?.tag ||
+      author?.username ||
+      author?.handle ||
+      author?.authorUsername ||
+      "";
+    const wallet =
+      author?.wallet ||
+      author?.walletAddress ||
+      author?.address ||
+      author?.wallet_id ||
+      "";
+    const avatar =
+      author?.authorImage ||
+      author?.avatar ||
+      author?.profileImage ||
+      author?.image ||
+      AuthorImage;
+
+    const verified = Boolean(author?.tag);
+
+    return { name, username, wallet, avatar, verified };
+  }, [author]);
+
+  if (!authorId) {
+    return <div style={{ padding: 20 }}>Missing author id.</div>;
+  }
 
   return (
     <div id="wrapper">
       <div className="no-bottom no-top" id="content">
-        <div id="top"></div>
-
         <section
           id="profile_banner"
-          aria-label="section"
           className="text-light"
           style={{ background: `url(${AuthorBanner}) top` }}
-        ></section>
-
-        <section aria-label="section">
+        />
+        <section>
           <div className="container">
-            {}
-            <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 10 }}>
-              Author ID: {authorId}
-            </div>
-
-            {loading ? (
+            {!loading && !errorMsg && author && (
               <div className="row">
                 <div className="col-md-12">
                   <div className="d_profile de-flex">
                     <div className="de-flex-col">
                       <div className="profile_avatar">
-                        {}
-                        <div
-                          style={{
-                            width: 120,
-                            height: 120,
-                            borderRadius: "50%",
-                            background: "#e9ecef",
-                            display: "inline-block",
-                            position: "relative",
-                          }}
-                        />
+                        <div className="avatar_wrap">
+                          <img
+                            src={display.avatar}
+                            alt={display.name}
+                            onError={(e) => {
+                              e.currentTarget.src = AuthorImage;
+                            }}
+                          />
+                          {display.verified && (
+                            <span className="verified_badge">✓</span>
+                          )}
+                        </div>
 
-                        {}
-                        <div
-                          style={{
-                            width: 20,
-                            height: 20,
-                            borderRadius: "50%",
-                            background: "#d1d5db",
-                            position: "relative",
-                            left: 90,
-                            top: -25,
-                          }}
-                        />
-
-                        {}
-                        <div style={{ marginTop: 12 }}>
-                          <div
-                            style={{
-                              height: 16,
-                              width: 220,
-                              background: "#e9ecef",
-                              borderRadius: 6,
-                              marginBottom: 10,
-                            }}
-                          />
-                          <div
-                            style={{
-                              height: 12,
-                              width: 140,
-                              background: "#e9ecef",
-                              borderRadius: 6,
-                              marginBottom: 10,
-                            }}
-                          />
-                          <div
-                            style={{
-                              height: 12,
-                              width: 360,
-                              background: "#e9ecef",
-                              borderRadius: 6,
-                            }}
-                          />
+                        <div className="profile_name">
+                          <h4 className="author_name">{display.name}</h4>
+                          {display.username && (
+                            <div className="author_username">
+                              @{display.username}
+                            </div>
+                          )}
+                          {display.wallet && (
+                            <div className="author_wallet_row">
+                              <span className="author_wallet">
+                                {display.wallet}
+                              </span>
+                              <button
+                                type="button"
+                                className="btn-wallet"
+                                style={{
+                                  pointerEvents: "auto",
+                                  position: "relative",
+                                  zIndex: 9999,
+                                }}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  navigator.clipboard.writeText(display.wallet);
+                                }}
+                              >
+                                Copy
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
 
-                    {}
                     <div className="profile_follow de-flex">
                       <div className="de-flex-col">
-                        <div
-                          style={{
-                            height: 12,
-                            width: 120,
-                            background: "#e9ecef",
-                            borderRadius: 6,
-                            marginBottom: 12,
-                          }}
-                        />
-                        <div
-                          style={{
-                            height: 40,
-                            width: 140,
-                            background: "#e9ecef",
-                            borderRadius: 10,
-                          }}
-                        />
+                        <div className="profile_follower">
+                          {followers} followers
+                        </div>
+                        <button
+                          type="button"
+                          className="btn-main"
+                          onClick={handleToggleFollow}
+                        >
+                          {isFollowing ? "Unfollow" : "Follow"}
+                        </button>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {}
-                <div className="col-md-12" style={{ marginTop: 30 }}>
+                <div className="col-md-12">
                   <div className="de_tab tab_simple">
-                    <div className="row">
-                      {new Array(8).fill(0).map((_, i) => (
-                        <div className="col-lg-3 col-md-6 col-sm-6" key={i}>
-                          <div
-                            style={{
-                              height: 220,
-                              background: "#e9ecef",
-                              borderRadius: 14,
-                              marginBottom: 20,
-                            }}
-                          />
-                        </div>
-                      ))}
-                    </div>
+                    <AuthorItems authorId={authorId} />
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div style={{ padding: "20px 0" }}>
-                <h3 style={{ marginBottom: 10 }}>Author Page</h3>
-                <p style={{ opacity: 0.8, marginBottom: 0 }}>
-                  Skeleton demo complete. Author ID in URL: <b>{authorId}</b>
-                </p>
               </div>
             )}
           </div>
