@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import AuthorImage from "../../images/author_thumbnail.jpg";
 import nftImage from "../../images/nftImage.jpg";
@@ -12,7 +12,6 @@ const ExploreItems = ({
   const INITIAL_COUNT = 8;
   const LOAD_MORE_STEP = 4;
   const [visibleCount, setVisibleCount] = useState(INITIAL_COUNT);
-
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
@@ -33,6 +32,28 @@ const ExploreItems = ({
 
   useEffect(() => {
     setVisibleCount(INITIAL_COUNT);
+  }, [items, filter]);
+
+  const toNumber = (v, fallback = 0) => {
+    const n = typeof v === "string" ? Number(v) : v;
+    return Number.isFinite(n) ? n : fallback;
+  };
+
+  const getPrice = (item) => toNumber(item?.price, 0);
+  const getLikes = (item) => toNumber(item?.likes, 0);
+
+  const sortedItems = useMemo(() => {
+    const copy = Array.isArray(items) ? [...items] : [];
+
+    if (filter === "price_low_to_high") {
+      copy.sort((a, b) => getPrice(a) - getPrice(b));
+    } else if (filter === "price_high_to_low") {
+      copy.sort((a, b) => getPrice(b) - getPrice(a));
+    } else if (filter === "likes_high_to_low") {
+      copy.sort((a, b) => getLikes(b) - getLikes(a));
+    }
+
+    return copy;
   }, [items, filter]);
 
   return (
@@ -122,7 +143,7 @@ const ExploreItems = ({
         ))}
 
       {!loading &&
-        items.slice(0, visibleCount).map((item, index) => {
+        sortedItems.slice(0, visibleCount).map((item, index) => {
           const nftId = item?.nftId || item?.id || item?._id || index;
 
           const authorId =
@@ -142,9 +163,9 @@ const ExploreItems = ({
 
           const title = item?.title || item?.name || "Untitled";
 
-          const price = item?.price != null ? `${item.price} ETH` : "—";
+          const priceText = item?.price != null ? `${item.price} ETH` : "—";
 
-          const likes = item?.likes != null ? item.likes : 0;
+          const likesText = item?.likes != null ? item.likes : 0;
 
           const endTimeRaw =
             item?.expiryDate ||
@@ -226,11 +247,11 @@ const ExploreItems = ({
                     <h4>{title}</h4>
                   </Link>
 
-                  <div className="nft__item_price">{price}</div>
+                  <div className="nft__item_price">{priceText}</div>
 
                   <div className="nft__item_like">
                     <i className="fa fa-heart"></i>
-                    <span>{likes}</span>
+                    <span>{likesText}</span>
                   </div>
                 </div>
               </div>
@@ -244,13 +265,14 @@ const ExploreItems = ({
             type="button"
             id="loadmore"
             className="btn-main lead"
-            disabled={visibleCount >= items.length}
+            disabled={visibleCount >= sortedItems.length}
             onClick={() => setVisibleCount((prev) => prev + LOAD_MORE_STEP)}
             style={{
-              cursor: visibleCount >= items.length ? "not-allowed" : "pointer",
+              cursor:
+                visibleCount >= sortedItems.length ? "not-allowed" : "pointer",
             }}
           >
-            {visibleCount >= items.length ? "No more items" : "Load more"}
+            {visibleCount >= sortedItems.length ? "No more items" : "Load more"}
           </button>
         </div>
       )}

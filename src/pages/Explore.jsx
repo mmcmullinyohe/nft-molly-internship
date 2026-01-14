@@ -10,6 +10,7 @@ const Explore = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
+  const [filter, setFilter] = useState("");
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -83,7 +84,12 @@ const Explore = () => {
         <section aria-label="section">
           <div className="container">
             <div className="row">
-              <ExploreItems items={items} loading={loading} />
+              <ExploreItems
+                items={items}
+                loading={loading}
+                filter={filter}
+                onFilterChange={setFilter}
+              />
             </div>
           </div>
         </section>
